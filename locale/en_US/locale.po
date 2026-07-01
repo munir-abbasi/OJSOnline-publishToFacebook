@@ -1,0 +1,79 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: publishToFacebook 1.0.0.0\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "plugins.generic.publishToFacebook.displayName"
+msgstr "Publish to Facebook"
+
+msgid "plugins.generic.publishToFacebook.description"
+msgstr "Publish article or issue links to a configured Facebook Page."
+
+msgid "plugins.generic.publishToFacebook.settings.pageId"
+msgstr "Facebook Page ID"
+
+msgid "plugins.generic.publishToFacebook.settings.accessToken"
+msgstr "Facebook Page Access Token"
+
+msgid "plugins.generic.publishToFacebook.settings.messageFormat.article"
+msgstr "Default article message format"
+
+msgid "plugins.generic.publishToFacebook.settings.messageFormat.issue"
+msgstr "Default issue message format"
+
+msgid "plugins.generic.publishToFacebook.settings.autoPublishArticles"
+msgstr "Automatically publish newly published articles"
+
+msgid "plugins.generic.publishToFacebook.settings.autoPublishIssues"
+msgstr "Automatically publish newly published issues"
+
+msgid "plugins.generic.publishToFacebook.settings.pageId.help"
+msgstr "The numeric ID of the Facebook Page to post to."
+
+msgid "plugins.generic.publishToFacebook.settings.accessToken.help"
+msgstr "A long-lived Facebook Page Access Token with publish_pages permission."
+
+msgid "plugins.generic.publishToFacebook.settings.messageFormat.article.help"
+msgstr "Available placeholders: {$articleTitle}, {$articleUrl}, {$journalName}"
+
+msgid "plugins.generic.publishToFacebook.settings.messageFormat.issue.help"
+msgstr "Available placeholders: {$issueTitle}, {$issueUrl}, {$journalName}"
+
+msgid "plugins.generic.publishToFacebook.post.button"
+msgstr "Publish to Facebook"
+
+msgid "plugins.generic.publishToFacebook.post.posting"
+msgstr "Posting..."
+
+msgid "plugins.generic.publishToFacebook.post.success"
+msgstr "Successfully published to Facebook."
+
+msgid "plugins.generic.publishToFacebook.post.error.notFound"
+msgstr "Submission not found."
+
+msgid "plugins.generic.publishToFacebook.post.error.notPublished"
+msgstr "This submission has not been published yet."
+
+msgid "plugins.generic.publishToFacebook.post.error.notConfigured"
+msgstr "Facebook Page ID or Access Token not configured."
+
+msgid "plugins.generic.publishToFacebook.post.alreadyPosted"
+msgstr "This article has already been published to Facebook."
+
+msgid "plugins.generic.publishToFacebook.post.error.noSubmissionId"
+msgstr "No submission ID provided."
+
+msgid "plugins.generic.publishToFacebook.autoPost.success"
+msgstr "Auto-published to Facebook."
+
+msgid "plugins.generic.publishToFacebook.autoPost.error"
+msgstr "Auto-publish to Facebook failed: {$error}"
+
+msgid "plugins.generic.publishToFacebook.post.retry"
+msgstr "Retry"
+
+msgid "plugins.generic.publishToFacebook.post.status.posted"
+msgstr "Published to Facebook"

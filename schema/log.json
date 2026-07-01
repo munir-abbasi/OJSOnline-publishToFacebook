@@ -1,0 +1,87 @@
+{
+	"title": "PostLog",
+	"description": "A log entry for a Facebook post made through the Publish to Facebook plugin.",
+	"required": [
+		"contextId",
+		"status"
+	],
+	"properties": {
+		"id": {
+			"type": "integer",
+			"origin": "primary",
+			"readOnly": true,
+			"apiSummary": true
+		},
+		"submissionId": {
+			"type": "integer",
+			"origin": "primary",
+			"description": "The ID of the submission that was posted.",
+			"apiSummary": true,
+			"validation": [
+				"nullable"
+			]
+		},
+		"contextId": {
+			"type": "integer",
+			"origin": "primary",
+			"description": "The journal/context ID.",
+			"apiSummary": true
+		},
+		"status": {
+			"type": "string",
+			"origin": "primary",
+			"description": "The result status of the post attempt.",
+			"apiSummary": true,
+			"validation": [
+				"in:success,error"
+			]
+		},
+		"facebookPostId": {
+			"type": "string",
+			"origin": "primary",
+			"description": "The Facebook post ID returned on success.",
+			"apiSummary": true,
+			"validation": [
+				"nullable",
+				"max:255"
+			]
+		},
+		"message": {
+			"type": "string",
+			"origin": "primary",
+			"description": "The message text that was sent to Facebook.",
+			"apiSummary": true,
+			"validation": [
+				"nullable"
+			]
+		},
+		"errorMessage": {
+			"type": "string",
+			"origin": "primary",
+			"description": "The error message returned by Facebook on failure.",
+			"apiSummary": true,
+			"validation": [
+				"nullable"
+			]
+		},
+		"link": {
+			"type": "string",
+			"origin": "primary",
+			"description": "The URL that was shared in the post.",
+			"apiSummary": true,
+			"validation": [
+				"nullable",
+				"max:2048"
+			]
+		},
+		"datePosted": {
+			"type": "string",
+			"origin": "primary",
+			"description": "The date and time when the post was attempted.",
+			"apiSummary": true,
+			"validation": [
+				"date_format:Y-m-d H:i:s"
+			]
+		}
+	}
+}

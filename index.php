@@ -1,4 +1,9 @@
 <?php
-require_once("publishToFacebookPlugin.inc.php");
-return new publishToFacebookPlugin();
-?>
+
+/**
+ * @file plugins/generic/publishToFacebook/index.php
+ */
+
+require_once('PublishToFacebookPlugin.php');
+
+return new \APP\plugins\generic\publishToFacebook\PublishToFacebookPlugin();

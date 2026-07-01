@@ -3,8 +3,8 @@
 <version>
 	<application>publishToFacebook</application>
 	<type>plugins.generic</type>
-	<release>1.0.1.0</release>
-	<date>2026-07-01</date>
+	<release>1.0.0.0</release>
+	<date>2019-05-30</date>
 	<lazy-load>1</lazy-load>
 	<class>publishToFacebookPlugin</class>
 </version>

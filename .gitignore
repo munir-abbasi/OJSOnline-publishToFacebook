@@ -1,0 +1,5 @@
+# Agent artifacts
+.omo/boulder.json
+.omo/drafts/
+.omo/notepads/
+.omo/run-continuation/
