@@ -15,6 +15,7 @@ use APP\plugins\generic\publishToFacebook\classes\FacebookService;
 use APP\plugins\generic\publishToFacebook\classes\PostLog;
 use APP\plugins\generic\publishToFacebook\classes\PostLogDAO;
 use APP\plugins\generic\publishToFacebook\classes\PublicationPostBuilder;
+use APP\facades\Repo;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -90,9 +91,9 @@ class PostController extends PKPBaseController
             ], 400);
         }
 
-        // Load the submission
-        $submission = \APP\submission\Submission::getById((int) $submissionId);
-        if (!$submission || $submission->getContextId() !== $contextId) {
+        // Load the submission via current repo API
+        $submission = Repo::submission()->get((int) $submissionId);
+        if (!$submission || $submission->getData('contextId') !== $contextId) {
             return response()->json([
                 'success' => false,
                 'error' => __('plugins.generic.publishToFacebook.post.error.notFound'),

@@ -44,7 +44,7 @@ class SettingsController extends PluginSettingsController
      */
     public function edit(EditSettingsRequest $request): JsonResponse
     {
-        $contextId = $this->getRequest()->getContext()->getId();
+        $contextId = $request->getContext()->getId();
 
         $this->plugin->updateSetting($contextId, Constants::PAGE_ID, $request->get(Constants::PAGE_ID));
         $this->plugin->updateSetting($contextId, Constants::ACCESS_TOKEN, $request->get(Constants::ACCESS_TOKEN));

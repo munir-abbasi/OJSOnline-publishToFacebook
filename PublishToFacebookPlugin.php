@@ -56,20 +56,23 @@ class PublishToFacebookPlugin extends GenericPlugin
             return new PostLogDAO(app(PKPSchemaService::class));
         });
 
-        if ($this->getEnabled($mainContextId) && !Application::isUnderMaintenance()) {
-            $this->controller = new SettingsController($this);
-            $this->postController = new PostController($this);
-            Hook::add('APIHandler::endpoints::plugin', function (string $hookName, APIRouter $apiRouter): bool {
-                $apiRouter->registerPluginApiControllers([
-                    $this->controller,
-                    $this->postController,
-                ]);
-                return Hook::CONTINUE;
-            });
-            $this->addPublishButtonHook();
-            $this->addAutoPublishHook();
-            $this->addAutoPublishIssueHook();
-        }
+        // Instantiate controllers (needed for API hook registration below)
+        $this->controller = new SettingsController($this);
+        $this->postController = new PostController($this);
+
+        // Register API endpoints unconditionally per OJS best practices
+        Hook::add('APIHandler::endpoints::plugin', function (string $hookName, APIRouter $apiRouter): bool {
+            $apiRouter->registerPluginApiControllers([
+                $this->controller,
+                $this->postController,
+            ]);
+            return Hook::CONTINUE;
+        });
+
+        // Register hooks unconditionally; runtime getEnabled() checks inside each handler
+        $this->addPublishButtonHook();
+        $this->addAutoPublishHook();
+        $this->addAutoPublishIssueHook();
 
         return true;
     }
@@ -277,6 +280,11 @@ HTML;
 
                 $contextId = $submission->getData('contextId');
 
+                // Runtime enabled check (hook registered unconditionally)
+                if (!$this->getEnabled($contextId)) {
+                    return Hook::CONTINUE;
+                }
+
                 // Check auto-publish setting
                 if (!$this->getSetting($contextId, Constants::AUTO_PUBLISH_ARTICLES)) {
                     return Hook::CONTINUE;
@@ -299,7 +307,8 @@ HTML;
                 }
 
                 // Resolve the Context object for the post builder
-                $context = app()->get('context')->get($contextId);
+                $contextDao = Application::getContextDAO();
+                $context = $contextDao->getById($contextId);
                 if (!$context) {
                     return Hook::CONTINUE;
                 }
@@ -365,6 +374,11 @@ HTML;
                 $issue =& $params[0];
                 $contextId = $issue->getJournalId();
 
+                // Runtime enabled check (hook registered unconditionally)
+                if (!$this->getEnabled($contextId)) {
+                    return Hook::CONTINUE;
+                }
+
                 // Check auto-publish setting
                 if (!$this->getSetting($contextId, Constants::AUTO_PUBLISH_ISSUES)) {
                     return Hook::CONTINUE;
@@ -386,7 +400,8 @@ HTML;
                 }
 
                 // Resolve the Context object for the post builder
-                $context = app()->get('context')->get($contextId);
+                $contextDao = Application::getContextDAO();
+                $context = $contextDao->getById($contextId);
                 if (!$context) {
                     return Hook::CONTINUE;
                 }

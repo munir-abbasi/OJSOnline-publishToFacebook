@@ -62,10 +62,14 @@ class PublicationPostBuilder
      * Generate the public-facing URL for the article using the OJS dispatcher.
      *
      * Uses getBestId() to handle both legacy (article_id) and current (submission_id) schemas.
+     * Returns empty string if no active request (e.g., CLI context).
      */
     public function getArticleUrl(): string
     {
         $request = \Application::get()->getRequest();
+        if ($request === null) {
+            return '';
+        }
 
         return $request->getDispatcher()->url(
             $request,

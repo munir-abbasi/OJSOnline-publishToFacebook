@@ -71,10 +71,14 @@ class IssuePostBuilder
      * Generate the public-facing URL for the issue using the OJS dispatcher.
      *
      * Uses getBestIssueId() to handle both custom URL paths and internal IDs.
+     * Returns empty string if no active request (e.g., CLI context).
      */
     public function getIssueUrl(): string
     {
         $request = \Application::get()->getRequest();
+        if ($request === null) {
+            return '';
+        }
 
         return $request->getDispatcher()->url(
             $request,

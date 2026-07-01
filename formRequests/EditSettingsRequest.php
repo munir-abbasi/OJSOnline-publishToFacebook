@@ -4,7 +4,15 @@ use APP\plugins\generic\publishToFacebook\classes\Constants;
 use Illuminate\Foundation\Http\FormRequest;
 class EditSettingsRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    /**
+     * Authorize: ensure a user is authenticated.
+     * Additional role/permission checks are handled by the route middleware.
+     */
+    public function authorize(): bool
+    {
+        $user = $this->user();
+        return $user !== null;
+    }
     public function rules(): array
     {
         return [

@@ -66,12 +66,6 @@ msgstr "This article has already been published to Facebook."
 msgid "plugins.generic.publishToFacebook.post.error.noSubmissionId"
 msgstr "No submission ID provided."
 
-msgid "plugins.generic.publishToFacebook.autoPost.success"
-msgstr "Auto-published to Facebook."
-
-msgid "plugins.generic.publishToFacebook.autoPost.error"
-msgstr "Auto-publish to Facebook failed: {$error}"
-
 msgid "plugins.generic.publishToFacebook.post.retry"
 msgstr "Retry"
 

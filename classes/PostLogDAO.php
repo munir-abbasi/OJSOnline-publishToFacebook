@@ -77,17 +77,26 @@ class PostLogDAO extends EntityDAO
     }
 
     /**
-     * Check if a submission has already been successfully posted.
+     * Check if a submission/issue has already been successfully posted.
+     *
+     * For issue posts (no submission), pass null as $submissionId
+     * to match entries with submission_id IS NULL.
      *
      * @return bool True if a successful post log exists for this submission+context.
      */
-    public function hasExistingPost(int $submissionId, int $contextId): bool
+    public function hasExistingPost(?int $submissionId, int $contextId): bool
     {
-        return DB::table($this->table)
-            ->where('submission_id', $submissionId)
+        $query = DB::table($this->table)
             ->where('context_id', $contextId)
-            ->where('status', PostLog::STATUS_SUCCESS)
-            ->exists();
+            ->where('status', PostLog::STATUS_SUCCESS);
+
+        if ($submissionId === null) {
+            $query->whereNull('submission_id');
+        } else {
+            $query->where('submission_id', $submissionId);
+        }
+
+        return $query->exists();
     }
 
     /**
