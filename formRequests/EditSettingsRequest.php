@@ -17,7 +17,7 @@ class EditSettingsRequest extends FormRequest
     {
         return [
             Constants::PAGE_ID => 'required|string|max:255',
-            Constants::ACCESS_TOKEN => 'required|string|max:255',
+            Constants::ACCESS_TOKEN => 'nullable|string|max:255',
             Constants::MESSAGE_FORMAT_ARTICLE => 'nullable|string|max:1000',
             Constants::MESSAGE_FORMAT_ISSUE => 'nullable|string|max:1000',
             Constants::AUTO_PUBLISH_ARTICLES => 'nullable|boolean',

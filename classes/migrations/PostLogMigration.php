@@ -24,6 +24,7 @@ class PostLogMigration extends Migration
         Schema::create('publish_to_facebook_post_logs', function (Blueprint $table) {
             $table->bigIncrements('post_log_id');
             $table->bigInteger('submission_id')->nullable();
+            $table->bigInteger('issue_id')->nullable();
             $table->bigInteger('context_id');
             $table->string('status', 20);
             $table->string('facebook_post_id', 255)->nullable();
@@ -33,6 +34,7 @@ class PostLogMigration extends Migration
             $table->datetime('date_posted');
 
             $table->index(['context_id', 'submission_id'], 'post_logs_context_submission_idx');
+            $table->index(['context_id', 'issue_id'], 'post_logs_context_issue_idx');
             $table->index('status', 'post_logs_status_idx');
         });
     }

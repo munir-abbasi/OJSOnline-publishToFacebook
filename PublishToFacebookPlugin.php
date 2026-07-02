@@ -104,6 +104,32 @@ class PublishToFacebookPlugin extends GenericPlugin
     }
 
     /**
+     * Persist an auto-publish failure without breaking the publication flow.
+     */
+    private function recordAutoPublishFailure(?int $submissionId, ?int $issueId, int $contextId, \Throwable $exception): void
+    {
+        try {
+            $postLog = new PostLog();
+            $postLog->setData('submissionId', $submissionId);
+            $postLog->setData('issueId', $issueId);
+            $postLog->setData('contextId', $contextId);
+            $postLog->setData('status', PostLog::STATUS_ERROR);
+            $postLog->setData('errorMessage', $exception->getMessage());
+            $postLog->setData('datePosted', Carbon::now()->format('Y-m-d H:i:s'));
+            app(PostLogDAO::class)->insert($postLog);
+        } catch (\Throwable $loggingException) {
+            error_log(sprintf(
+                '[PublishToFacebookPlugin] Failed to persist auto-publish error log for context %d (submissionId=%s, issueId=%s). Original error: %s. Logging error: %s',
+                $contextId,
+                $submissionId === null ? 'null' : (string) $submissionId,
+                $issueId === null ? 'null' : (string) $issueId,
+                $exception->getMessage(),
+                $loggingException->getMessage()
+            ));
+        }
+    }
+
+    /**
      * Get the display name of this plugin.
      */
     public function getDisplayName(): string
@@ -341,17 +367,7 @@ HTML;
 
             } catch (\Throwable $e) {
                 // Never let an auto-post failure break the publication workflow
-                try {
-                    $postLog = new PostLog();
-                    $postLog->setData('submissionId', $params[2]->getId());
-                    $postLog->setData('contextId', $params[2]->getData('contextId'));
-                    $postLog->setData('status', PostLog::STATUS_ERROR);
-                    $postLog->setData('errorMessage', $e->getMessage());
-                    $postLog->setData('datePosted', Carbon::now()->format('Y-m-d H:i:s'));
-                    app(PostLogDAO::class)->insert($postLog);
-                } catch (\Throwable) {
-                    // Silent — nothing we can do
-                }
+                $this->recordAutoPublishFailure($params[2]->getId(), null, $params[2]->getData('contextId'), $e);
             }
 
             return Hook::CONTINUE;
@@ -386,7 +402,8 @@ HTML;
 
                 // Check for duplicate issue post
                 $postLogDAO = app(PostLogDAO::class);
-                if ($postLogDAO->hasExistingPost(null, $contextId)) {
+                $issueId = (int) $issue->getId();
+                if ($postLogDAO->hasExistingIssuePost($issueId, $contextId)) {
                     return Hook::CONTINUE;
                 }
 
@@ -418,6 +435,7 @@ HTML;
                 // Log the result (submissionId is null for issue posts)
                 $postLog = new PostLog();
                 $postLog->setData('submissionId', null);
+                $postLog->setData('issueId', $issueId);
                 $postLog->setData('contextId', $contextId);
                 $postLog->setData('message', $message);
                 $postLog->setData('link', $issueUrl);
@@ -434,17 +452,8 @@ HTML;
 
             } catch (\Throwable $e) {
                 // Never let an auto-post failure break the issue publishing workflow
-                try {
-                    $postLog = new PostLog();
-                    $postLog->setData('submissionId', null);
-                    $postLog->setData('contextId', $params[0]->getJournalId());
-                    $postLog->setData('status', PostLog::STATUS_ERROR);
-                    $postLog->setData('errorMessage', $e->getMessage());
-                    $postLog->setData('datePosted', Carbon::now()->format('Y-m-d H:i:s'));
-                    app(PostLogDAO::class)->insert($postLog);
-                } catch (\Throwable) {
-                    // Silent — nothing we can do
-                }
+                $issue = $params[0];
+                $this->recordAutoPublishFailure(null, $issue->getId(), $issue->getJournalId(), $e);
             }
 
             return Hook::CONTINUE;

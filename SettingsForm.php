@@ -36,7 +36,7 @@ class SettingsForm extends FormComponent
             'label' => __('plugins.generic.publishToFacebook.settings.accessToken'),
             'description' => __('plugins.generic.publishToFacebook.settings.accessToken.help'),
             'size' => 'large',
-            'isRequired' => true,
+            'isRequired' => false,
             'inputType' => 'password',
         ]));
 

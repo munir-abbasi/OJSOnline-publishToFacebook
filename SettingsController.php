@@ -30,7 +30,7 @@ class SettingsController extends PluginSettingsController
         );
 
         $form->setData(Constants::PAGE_ID, $this->plugin->getSetting($contextId, Constants::PAGE_ID));
-        $form->setData(Constants::ACCESS_TOKEN, $this->plugin->getSetting($contextId, Constants::ACCESS_TOKEN));
+        $form->setData(Constants::ACCESS_TOKEN, '');
         $form->setData(Constants::MESSAGE_FORMAT_ARTICLE, $this->plugin->getSetting($contextId, Constants::MESSAGE_FORMAT_ARTICLE));
         $form->setData(Constants::MESSAGE_FORMAT_ISSUE, $this->plugin->getSetting($contextId, Constants::MESSAGE_FORMAT_ISSUE));
         $form->setData(Constants::AUTO_PUBLISH_ARTICLES, (bool) $this->plugin->getSetting($contextId, Constants::AUTO_PUBLISH_ARTICLES));
@@ -45,9 +45,20 @@ class SettingsController extends PluginSettingsController
     public function edit(EditSettingsRequest $request): JsonResponse
     {
         $contextId = $request->getContext()->getId();
+        $existingAccessToken = (string) $this->plugin->getSetting($contextId, Constants::ACCESS_TOKEN);
+        $submittedAccessToken = trim((string) $request->get(Constants::ACCESS_TOKEN, ''));
+
+        if ($submittedAccessToken === '' && $existingAccessToken === '') {
+            return response()->json([
+                'success' => false,
+                'error' => __('plugins.generic.publishToFacebook.settings.accessToken') . ' is required.',
+            ], 422);
+        }
 
         $this->plugin->updateSetting($contextId, Constants::PAGE_ID, $request->get(Constants::PAGE_ID));
-        $this->plugin->updateSetting($contextId, Constants::ACCESS_TOKEN, $request->get(Constants::ACCESS_TOKEN));
+        if ($submittedAccessToken !== '') {
+            $this->plugin->updateSetting($contextId, Constants::ACCESS_TOKEN, $submittedAccessToken);
+        }
         $this->plugin->updateSetting($contextId, Constants::MESSAGE_FORMAT_ARTICLE, $request->get(Constants::MESSAGE_FORMAT_ARTICLE));
         $this->plugin->updateSetting($contextId, Constants::MESSAGE_FORMAT_ISSUE, $request->get(Constants::MESSAGE_FORMAT_ISSUE));
         $this->plugin->updateSetting($contextId, Constants::AUTO_PUBLISH_ARTICLES, (bool) $request->get(Constants::AUTO_PUBLISH_ARTICLES, false));

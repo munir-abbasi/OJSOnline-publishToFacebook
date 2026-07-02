@@ -21,6 +21,15 @@
 				"nullable"
 			]
 		},
+		"issueId": {
+			"type": "integer",
+			"origin": "primary",
+			"description": "The ID of the issue that was posted.",
+			"apiSummary": true,
+			"validation": [
+				"nullable"
+			]
+		},
 		"contextId": {
 			"type": "integer",
 			"origin": "primary",

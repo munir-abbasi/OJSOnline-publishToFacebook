@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE install SYSTEM "../../../lib/pkp/dtd/install.dtd">
+<install version="1.0.3.0">
+	<upgrade minversion="1.0.0.0" maxversion="1.0.2.9">
+		<migration class="APP\plugins\generic\publishToFacebook\classes\migrations\AddIssueIdToPostLogMigration" />
+	</upgrade>
+</install>
