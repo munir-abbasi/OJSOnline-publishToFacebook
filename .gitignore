@@ -1,2 +1,15 @@
 # Agent artifacts
 /.omo/
+
+# PHP dependencies
+/vendor/
+
+# PHPUnit cache
+/.phpunit.cache/
+
+# Legacy backup files
+/backup/
+*.bak
+
+# Task file
+Your-Task.md
