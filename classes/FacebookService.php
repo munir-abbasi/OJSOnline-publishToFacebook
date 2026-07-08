@@ -34,6 +34,15 @@ class FacebookService
         $url = self::API_BASE_URL . self::API_VERSION . '/' . $pageId . '/feed';
 
         $ch = curl_init();
+        if ($ch === false) {
+            return [
+                'success' => false,
+                'error' => 'Unable to initialize Facebook API request.',
+                'code' => null,
+                'postId' => null,
+            ];
+        }
+
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_POST => true,
@@ -62,6 +71,14 @@ class FacebookService
         }
 
         $data = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return [
+                'success' => false,
+                'error' => 'Invalid response from Facebook API: ' . json_last_error_msg(),
+                'code' => $httpCode,
+                'postId' => null,
+            ];
+        }
 
         if ($httpCode >= 200 && $httpCode < 300 && isset($data['id'])) {
             return [
