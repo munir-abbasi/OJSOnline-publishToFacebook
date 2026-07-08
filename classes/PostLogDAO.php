@@ -104,7 +104,7 @@ class PostLogDAO extends EntityDAO
             return null;
         }
 
-        return $this->fromRow((array) $row);
+        return $this->fromRow($row);
     }
 
 
