@@ -1,6 +1,6 @@
 # Publish to Facebook — OJS 3.5+ Plugin
 
-**Version:** 1.0.2.0  
+**Version:** 1.0.4.0  
 **Author:** Munir Abbasi  
 **Website:** [syntaxhouse.com](https://syntaxhouse.com)  
 **GitHub:** [munir-abbasi](https://github.com/munir-abbasi/)  
@@ -11,9 +11,9 @@
 
 ## Overview
 
-Publish to Facebook is a [PKP](https://pkp.sfu.ca) [Open Journal Systems](https://pkp.sfu.ca/ojs/) (OJS) generic plugin that enables journal managers and editors to publish article links to a configured Facebook Page.
+Publish to Facebook is a [PKP](https://pkp.sfu.ca) [Open Journal Systems](https://pkp.sfu.ca/ojs/) (OJS) generic plugin that enables journal managers and site administrators to publish article links to a configured Facebook Page.
 
-The plugin supports both **manual** (one-click from the submission detail page) and **automatic** (on article or issue publication) posting, with full duplicate prevention, error logging, and retry capability.
+The plugin supports **automatic** posting (on article or issue publication) with full duplicate prevention, error logging, and retry capability. Manual posting via API is also available for programmatic use.
 
 ---
 
@@ -21,13 +21,12 @@ The plugin supports both **manual** (one-click from the submission detail page) 
 
 | Feature | Description |
 |---|---|
-| **Manual posting** | One-click "Publish to Facebook" button on the submission detail page |
 | **Auto-posting (articles)** | Automatically post when an article is published (toggle in settings) |
 | **Auto-posting (issues)** | Automatically post when an issue is published from the issue grid |
 | **Duplicate prevention** | Prevents the same article or issue from being posted twice |
 | **Error logging** | Logs all post attempts (success and failure) with timestamps |
-| **Status display** | Shows current post status (posted / error) on submission page |
-| **Retry** | One-click retry for failed posts |
+| **API endpoint** | POST endpoint for programmatic manual posting |
+| **Status API** | GET endpoint for checking post status and retrying |
 | **Settings UI** | Vue-based settings panel integrated via OJS 3.5 modal |
 | **Custom message format** | Configurable message templates with placeholders |
 | **Safe URL building** | Uses OJS dispatcher for canonical article URLs |
@@ -37,9 +36,9 @@ The plugin supports both **manual** (one-click from the submission detail page) 
 ## Requirements
 
 - OJS 3.5.0 or later
-- PHP 8.0 or later
-- A Facebook Page with a long-lived Page Access Token
-- Facebook App with `pages_manage_posts` and `pages_read_engagement` permissions
+- PHP 8.3 or later
+- A Facebook Page with a long-lived Page Access Token authorized to publish to that Page
+- Facebook App permissions required by the current Meta Graph API for Page publishing. Verify the exact permission set in Meta's current documentation before production use.
 - Server with `allow_url_fopen` or `curl` enabled
 
 ---
@@ -67,7 +66,7 @@ Go to **Website Settings → Plugins → Publish to Facebook → Settings** (gea
 | Setting | Description |
 |---|---|
 | **Facebook Page ID** | The numeric ID of your Facebook Page |
-| **Facebook Page Access Token** | A long-lived Page Access Token with `pages_manage_posts` permission |
+| **Facebook Page Access Token** | A long-lived Page Access Token authorized to publish to the configured Page |
 | **Default article message format** | Message template for article posts (see placeholders below) |
 | **Default issue message format** | Message template for issue posts |
 | **Auto-publish articles** | When enabled, newly published articles are posted automatically |
@@ -110,14 +109,6 @@ New issue published: {$issueTitle}
 ---
 
 ## Usage
-
-### Manual Posting
-
-1. Open any published submission's detail page.
-2. A **Publish to Facebook** button appears in the top action bar.
-3. Click the button to post the article link to your configured Facebook Page.
-4. A green **Published to Facebook** status indicator confirms the post.
-5. If the post fails, a red error message and **Retry** button appear.
 
 ### Automatic Article Posting
 
@@ -185,17 +176,15 @@ plugins/generic/publishToFacebook/
 PublishToFacebookPlugin
 │
 ├── register()
-│   ├── Hook::add(...) ──> registerSettingsForm()        [settings hook]
-│   ├── Hook::add(...) ──> addPublishButtonHook()        [submission page JS]
-│   ├── Hook::add(...) ──> registerPostLogSchema()       [schema registration]
-│   ├── Hook::add(...) ──> registerApiController()       [API endpoint]
-│   ├── Hook::add(...) ──> addAutoPublishHook()          [article auto-pub]
-│   └── Hook::add(...) ──> addAutoPublishIssueHook()     [issue auto-pub]
+│   ├── Hook::add(APIHandler::endpoints::plugin)   [register API controllers]
+│   ├── Hook::add(Schema::get::postLog)            [register custom schema]
+│   ├── addAutoPublishHook()                        [article auto-pub]
+│   └── addAutoPublishIssueHook()                   [issue auto-pub]
 │
 ├── SettingsController  ──> EditSettingsRequest ──> Constants
 │
-├── PostController (manual article posts)
-│   ├── POST /{submissionId}           # Submit to Facebook
+├── PostController (manual article posts; API group: publishToFacebookPost)
+│   ├── POST /                         # Submit to Facebook; body includes submissionId
 │   ├── GET  /history/{submissionId}   # Get post status
 │   │
 │   ├── FacebookService                # Graph API call
@@ -214,14 +203,15 @@ PublishToFacebookPlugin
         └── PostLogDAO                 # Persistence + dedup
 ```
 
-### Data Flow (Manual Post)
+### Data Flow (API-Triggered Manual Post)
 
 ```
-[Editor clicks button]
+[POST /{contextPath}/api/{version}/publishToFacebookPost]
        │
        ▼
 PostController::submit()
        │
+       ├── Read submissionId from request body
        ├── PublicationPostBuilder::buildMessage()
        ├── PostLogDAO::hasExistingPost()  ──► 409 if duplicate
        ├── FacebookService::postLink()
@@ -236,7 +226,7 @@ PostController::submit()
 [Publication::publish hook fires]
        │
        ▼
-PublishToFacebookPlugin::handleArticlePublication()
+PublishToFacebookPlugin::addAutoPublishHook()
        │
        ├── Check autoPublishArticles setting
        ├── PostLogDAO::hasExistingPost()  ──► skip if duplicate
@@ -255,14 +245,16 @@ PublishToFacebookPlugin::handleArticlePublication()
 PublishToFacebookPlugin::addAutoPublishIssueHook()
        │
        ├── Check autoPublishIssues setting
-       ├── PostLogDAO::hasExistingPost(null, contextId)  ──► skip if duplicate
+       ├── PostLogDAO::hasExistingIssuePost($issueId, $contextId)  ──► skip if duplicate
        ├── IssuePostBuilder::buildMessage()
        ├── IssuePostBuilder::getIssueUrl()
        │       └── dispatcher->url() ──► issue/view/{bestIssueId}
        ├── FacebookService::postLink()
        ├── PostLogDAO::insert() (submissionId=null, contextId set)
-       └── Never blocks issue publication
+       └── Catches plugin exceptions so Facebook failures do not abort issue publication
 ```
+
+> **Workflow note:** In OJS 3.5, `IssueGridHandler::publishIssue` fires before the final `Repo::issue()->updateCurrent($contextId, $issue)` call. The plugin catches its own failures, but the Facebook post/log side effect is not transactional with OJS issue persistence. If a later OJS issue update fails, the Facebook post log may be ahead of the final OJS issue state.
 
 ---
 
@@ -274,6 +266,7 @@ PublishToFacebookPlugin::addAutoPublishIssueHook()
 |---|---|---|
 | `post_log_id` | bigint (PK) | Auto-increment primary key |
 | `submission_id` | bigint | OJS submission ID (nullable; `null` for issue posts) |
+| `issue_id` | bigint | OJS issue ID (nullable; `null` for article posts) |
 | `context_id` | bigint | Journal/context ID |
 | `status` | varchar(20) | `success` or `error` |
 | `facebook_post_id` | varchar(255) | Facebook Graph API post ID (nullable) |
@@ -284,6 +277,7 @@ PublishToFacebookPlugin::addAutoPublishIssueHook()
 
 **Indexes:**
 - `post_logs_context_submission_idx` on `(context_id, submission_id)`
+- `post_logs_context_issue_idx` on `(context_id, issue_id)`
 - `post_logs_status_idx` on `(status)`
 
 ---
@@ -292,12 +286,12 @@ PublishToFacebookPlugin::addAutoPublishIssueHook()
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/{submissionId}` | Post submission to Facebook |
-| `GET` | `/history/{submissionId}` | Get latest post log for submission |
+| `POST` | `/{contextPath}/api/{version}/publishToFacebookPost` | Post submission to Facebook. Include `submissionId` in the request body. |
+| `GET` | `/{contextPath}/api/{version}/publishToFacebookPost/history/{submissionId}` | Get latest post log for submission |
 
-All endpoints are registered under the `publishToFacebook` API group and require logged-in users with appropriate permissions.
+The settings endpoint is registered under the `publishToFacebook` API group. Manual posting/history endpoints are registered under the `publishToFacebookPost` API group. The manual posting/history controller requires a logged-in user in the current context with the OJS manager role, or a site administrator.
 
-> Issue posting is automatic only (triggered by `IssueGridHandler::publishIssue`). There is no manual issue post endpoint — the existing API handles submission/article posting only.
+> **Note:** In OJS 3.5, the submission details page uses Vue.js, so the legacy manual posting button (via `Templates::Submission::SubmissionDetails::Main` hook) is not available. Manual posting is accessible via the API endpoint. Auto-posting via hooks remains fully functional.
 
 ---
 
@@ -343,9 +337,9 @@ php lib/pkp/vendor/bin/phpunit \
 
 **Note:** The Constants test is self-contained and can run without OJS bootstrapping if the plugin namespace is autoloaded. The PostLog and DAO tests require OJS framework.
 
-### Migration Rollback
+### Migration Rollback and Uninstall Safety
 
-Rolling back the plugin migration drops the `publish_to_facebook_post_logs` table and permanently deletes all post history (success logs, Facebook post IDs, error records). Always take a database backup before reverting.
+Rolling back the plugin migration drops the `publish_to_facebook_post_logs` table and permanently deletes all post history (success logs, Facebook post IDs, error records). The upgrade rollback that removes `issue_id` also removes the issue-post linkage from historical rows. Do not run destructive rollback/uninstall operations on production data without an explicit database backup, operator approval, and a restore plan.
 
 ### Code Style
 
@@ -369,10 +363,20 @@ Rolling back the plugin migration drops the `publish_to_facebook_post_logs` tabl
 
 ---
 
+## Known Limitations
+
+- **Manual posting button**: The "Publish to Facebook" button on the submission detail page does not appear in OJS 3.5 because the submission details page is now rendered by Vue.js. The legacy `Templates::Submission::SubmissionDetails::Main` hook no longer fires. Manual posting is available via `POST /{contextPath}/api/{version}/publishToFacebookPost` with `submissionId` in the request body.
+- **Vue component approach**: A Vue component to restore the manual posting button is planned for a future release.
+- **Runtime verification**: Static compatibility checks have passed, but production readiness still requires install/enable/settings/API/hook smoke tests in a real OJS 3.5 runtime.
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.0.4.0 | 2026-07-02 | Fix OJS 3.5 compatibility: remove broken template hook, fix EntityDAO fromRow() type error, update documentation |
+| 1.0.3.0 | 2026-07-02 | Hardened posting logs and plugin migrations |
 | 1.0.2.0 | 2026-07-01 | Issue auto-posting (IssuePostBuilder, IssueGridHandler hook) |
 | 1.0.1.0 | 2026-07-01 | PostLog migration, auto-posting, retry/status display, PublicationPostBuilder |
 | 1.0.0.0 | — | Initial modernization (namespace, settings, manual post, FacebookService) |

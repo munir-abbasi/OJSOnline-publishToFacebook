@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: publishToFacebook 1.0.0.0\n"
+"Project-Id-Version: publishToFacebook 1.0.4.0\n"
 "Language: en_US\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -34,13 +34,13 @@ msgid "plugins.generic.publishToFacebook.settings.pageId.help"
 msgstr "The numeric ID of the Facebook Page to post to."
 
 msgid "plugins.generic.publishToFacebook.settings.accessToken.help"
-msgstr "A long-lived Facebook Page Access Token with publish_pages permission."
+msgstr "A long-lived Facebook Page Access Token authorized to publish to the configured Page. Verify required Meta permissions before production use."
 
 msgid "plugins.generic.publishToFacebook.settings.messageFormat.article.help"
 msgstr "Available placeholders: {$articleTitle}, {$articleUrl}, {$journalName}"
 
 msgid "plugins.generic.publishToFacebook.settings.messageFormat.issue.help"
-msgstr "Available placeholders: {$issueTitle}, {$issueUrl}, {$journalName}"
+msgstr "Available placeholders: {$issueTitle}, {$volume}, {$number}, {$year}, {$datePublished}, {$issueUrl}, {$journalName}"
 
 msgid "plugins.generic.publishToFacebook.post.button"
 msgstr "Publish to Facebook"
